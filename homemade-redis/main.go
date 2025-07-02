@@ -3,7 +3,6 @@ package main
 import (
     "fmt"
     "io"
-    "os"
     "net"
 )
 
@@ -17,18 +16,22 @@ func main() {
         return
     }
     // Listen for connections
-    conn, err := l.Accept()
-    if err != nil {
-        fmt.Println("Error accepting connection:", err)
-        return
+    defer l.Close()
+
+    for {
+        conn, err := l.Accept()
+        if err != nil {
+            fmt.Println("Error accepting connection:", err)
+            continue
+        }
+        go handleConnection(conn)
     }
+}
 
+func handleConnection(conn net.Conn) {
     defer conn.Close()
-
-    for{
+    for {
         buf := make([]byte, 1024)
-
-        //read message from client
         n, err := conn.Read(buf)
         if err != nil {
             if err == io.EOF {
@@ -36,12 +39,9 @@ func main() {
                 break
             }
             fmt.Println("Error reading from connection:", err)
-            os.Exit(1)
+            return
         }
         fmt.Printf("Received: %s\n", string(buf[:n]))
-
-        //ignore request and send back a PONG
         conn.Write([]byte("+OK\r\n"))
-
     }
 }
