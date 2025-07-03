@@ -2,7 +2,6 @@ package main
 
 import (
     "fmt"
-    "io"
     "net"
 )
 
@@ -30,18 +29,17 @@ func main() {
 
 func handleConnection(conn net.Conn) {
     defer conn.Close()
-    for {
-        buf := make([]byte, 1024)
-        n, err := conn.Read(buf)
-        if err != nil {
-            if err == io.EOF {
-                fmt.Println("Client disconnected")
-                break
-            }
-            fmt.Println("Error reading from connection:", err)
-            return
-        }
-        fmt.Printf("Received: %s\n", string(buf[:n]))
-        conn.Write([]byte("+OK\r\n"))
-    }
+ 	for {
+		resp := NewResp(conn)
+		value, err := resp.Read()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Println(value)
+
+		// ignore request and send back a PONG
+		conn.Write([]byte("+OK\r\n"))
+	}
 }
