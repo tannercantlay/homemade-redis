@@ -19,5 +19,6 @@ go run .
 
 - [x] Reading RESP
 - [ ] Writing RESP
-- [ ] Data Persistence
+- [ ] Data persistence
 - [ ] Logging improvements
+- [ ] Containerize
