@@ -30,6 +30,10 @@ type Resp struct {
 func NewResp(rd io.Reader) *Resp {
 	return &Resp{reader: bufio.NewReader(rd)}
 }
+// readLine reads a line from the RESP protocol.
+// It reads bytes until it encounters a CRLF sequence,
+// and returns the line without the CRLF, the number of bytes read,
+// and an error if any occurs.
 
 func (r *Resp) readLine() (line []byte, n int, err error) {
 	for {
@@ -45,6 +49,9 @@ func (r *Resp) readLine() (line []byte, n int, err error) {
 	}
 	return line[:len(line)-2], n, nil
 }
+// readInteger reads an integer from the RESP protocol.
+// It reads a line from the reader, parses it as an integer, and returns the integer
+// along with the number of bytes read and an error if any occurs.
 
 func (r *Resp) readInteger() (x int, n int, err error) {
 	line, n, err := r.readLine()
@@ -57,6 +64,10 @@ func (r *Resp) readInteger() (x int, n int, err error) {
 	}
 	return int(i64), n, nil
 }
+// Read reads a RESP value from the reader.
+// It reads the type of the value and then calls the appropriate method
+// to read the value based on its type.
+// It returns a Value containing the parsed value or an error if any occurs.
 
 func (r *Resp) Read() (Value, error) {
 	_type, err := r.reader.ReadByte()
@@ -75,6 +86,9 @@ func (r *Resp) Read() (Value, error) {
 		return Value{}, nil
 	}
 }
+// readArray reads an array from the RESP protocol.
+// It reads the length of the array, then reads each element in the array,
+// and returns a Value containing the array or an error if any occurs.
 
 func (r *Resp) readArray() (Value, error) {
 	v := Value{}
@@ -100,6 +114,10 @@ func (r *Resp) readArray() (Value, error) {
 
 	return v, nil
 }
+//readBulk reads a bulk string from the RESP protocol.
+// It reads the length of the bulk string, then reads the bulk data,
+// and finally reads the trailing CRLF.
+// It returns a Value containing the bulk string or an error if any occurs.
 
 func (r *Resp) readBulk() (Value, error) {
 	v := Value{}
