@@ -18,7 +18,8 @@ go run .
 ## TODO
 
 - [x] Reading RESP
-- [ ] Writing RESP
+- [x] Writing RESP
+- [ ] Reading RESP commands
 - [ ] Data persistence
 - [ ] Logging improvements
 - [ ] Containerize
