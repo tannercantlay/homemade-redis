@@ -13,7 +13,7 @@ go run .
 ## Project Structure
 
 - `main.go` — Entry point, TCP server logic
-- `resp.go` — RESP protocol parsing
+- `resp.go` — RESP protocol parsing and responding
 
 ## TODO
 

@@ -7,6 +7,8 @@ import (
 	"strconv"
 )
 
+// Define RESP protocol types
+// RESP (REdis Serialization Protocol) uses specific characters to denote different types of values.
 const (
 	STRING  = '+'
 	ERROR   = '-'
@@ -15,6 +17,7 @@ const (
 	ARRAY   = '*'
 )
 
+// Value represents a RESP value.
 type Value struct {
 	typ   string
 	str   string
@@ -27,14 +30,16 @@ type Resp struct {
 	reader *bufio.Reader
 }
 
+// NewResp creates and returns a new Resp instance that reads from the provided io.Reader.
+// It initializes a buffered reader to efficiently read RESP formatted data.
 func NewResp(rd io.Reader) *Resp {
 	return &Resp{reader: bufio.NewReader(rd)}
 }
+
 // readLine reads a line from the RESP protocol.
 // It reads bytes until it encounters a CRLF sequence,
 // and returns the line without the CRLF, the number of bytes read,
 // and an error if any occurs.
-
 func (r *Resp) readLine() (line []byte, n int, err error) {
 	for {
 		b, err := r.reader.ReadByte()
@@ -49,10 +54,10 @@ func (r *Resp) readLine() (line []byte, n int, err error) {
 	}
 	return line[:len(line)-2], n, nil
 }
+
 // readInteger reads an integer from the RESP protocol.
 // It reads a line from the reader, parses it as an integer, and returns the integer
 // along with the number of bytes read and an error if any occurs.
-
 func (r *Resp) readInteger() (x int, n int, err error) {
 	line, n, err := r.readLine()
 	if err != nil {
@@ -64,11 +69,11 @@ func (r *Resp) readInteger() (x int, n int, err error) {
 	}
 	return int(i64), n, nil
 }
+
 // Read reads a RESP value from the reader.
 // It reads the type of the value and then calls the appropriate method
 // to read the value based on its type.
 // It returns a Value containing the parsed value or an error if any occurs.
-
 func (r *Resp) Read() (Value, error) {
 	_type, err := r.reader.ReadByte()
 
@@ -86,10 +91,10 @@ func (r *Resp) Read() (Value, error) {
 		return Value{}, nil
 	}
 }
+
 // readArray reads an array from the RESP protocol.
 // It reads the length of the array, then reads each element in the array,
 // and returns a Value containing the array or an error if any occurs.
-
 func (r *Resp) readArray() (Value, error) {
 	v := Value{}
 	v.typ = "array"
@@ -114,11 +119,11 @@ func (r *Resp) readArray() (Value, error) {
 
 	return v, nil
 }
-//readBulk reads a bulk string from the RESP protocol.
+
+// readBulk reads a bulk string from the RESP protocol.
 // It reads the length of the bulk string, then reads the bulk data,
 // and finally reads the trailing CRLF.
 // It returns a Value containing the bulk string or an error if any occurs.
-
 func (r *Resp) readBulk() (Value, error) {
 	v := Value{}
 
@@ -141,25 +146,34 @@ func (r *Resp) readBulk() (Value, error) {
 	return v, nil
 }
 
-
-//Marshal value to bytes
+// Marshal value to bytes
+// Marshal converts a Value to its RESP byte representation.
+// It checks the type of the value and calls the appropriate marshal method
+// based on the type (array, bulk, string, null, or error).
+// It returns the marshaled bytes.
+// If the type is unknown, it returns an empty byte slice.
+// This function is used to prepare the value for transmission over the network or for storage.
 func (v Value) Marshal() []byte {
 	switch v.typ {
-		case "array":
-			return v.marshalArray()
-		case "bulk":
-			return v.marshalBulk()
-		default:
-			return []byte{}
-			case "string":
-			return v.marshalString()
-			case "null":
-			return v.marshalNull()
-			case "error":
-			return v.marshalError()
+	case "array":
+		return v.marshalArray()
+	case "bulk":
+		return v.marshalBulk()
+	default:
+		return []byte{}
+	case "string":
+		return v.marshalString()
+	case "null":
+		return v.marshalNull()
+	case "error":
+		return v.marshalError()
 	}
 }
 
+// marshalString marshals string array to RESP format.
+// It prepends the type identifier for a string, appends the string value,
+// and adds the CRLF sequence at the end.
+// It returns the marshaled bytes.
 func (v Value) marshalString() []byte {
 	var bytes []byte
 	bytes = append(bytes, STRING)
@@ -168,6 +182,11 @@ func (v Value) marshalString() []byte {
 	return bytes
 }
 
+// marshalBulk marshals a bulk string to RESP format.
+// It prepends the type identifier for a bulk string, appends the length of the bulk
+// string, adds the bulk string itself, and appends the CRLF sequence at the end.
+// It returns the marshaled bytes.
+// The length is represented as a string followed by CRLF.
 func (v Value) marshalBulk() []byte {
 	var bytes []byte
 	bytes = append(bytes, BULK)
@@ -178,6 +197,10 @@ func (v Value) marshalBulk() []byte {
 	return bytes
 }
 
+// marshalArray marshals an array to RESP format.
+// It prepends the type identifier for an array, appends the length of the array,
+// and then marshals each element in the array, appending them to the result.
+// It returns the marshaled bytes.
 func (v Value) marshalArray() []byte {
 	var bytes []byte
 	bytes = append(bytes, ARRAY)
@@ -189,6 +212,10 @@ func (v Value) marshalArray() []byte {
 	return bytes
 }
 
+// marshalError marshals an error message to RESP format.
+// It prepends the type identifier for an error, appends the error message,
+// and adds the CRLF sequence at the end.
+// It returns the marshaled bytes.
 func (v Value) marshalError() []byte {
 	var bytes []byte
 	bytes = append(bytes, ERROR)
@@ -198,10 +225,14 @@ func (v Value) marshalError() []byte {
 	return bytes
 }
 
+// marshalNull marshals a null value to RESP format.
+// It uses the RESP representation for null, which is a special case.
 func (v Value) marshalNull() []byte {
 	return []byte("$-1\r\n")
 }
 
+// Writer is a struct that provides methods to write RESP formatted data to an io.Writer.
+// It encapsulates an io.Writer and provides a method to write RESP values.
 type Writer struct {
 	writer io.Writer
 }
@@ -212,6 +243,8 @@ func NewWriter(w io.Writer) *Writer {
 	return &Writer{writer: w}
 }
 
+// Write writes a RESP value to the underlying io.Writer.
+// It marshals the Value to its RESP byte representation and writes it to the writer.
 func (w *Writer) Write(v Value) error {
 	var bytes = v.Marshal()
 
