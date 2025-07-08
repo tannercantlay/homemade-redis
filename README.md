@@ -23,3 +23,5 @@ go run .
 - [ ] Data persistence
 - [ ] Logging improvements
 - [ ] Containerize
+
+testing something for commits
