@@ -19,7 +19,7 @@ go run .
 
 - [x] Reading RESP
 - [x] Writing RESP
-- [ ] Reading RESP commands
+- [x] Reading RESP commands
 - [ ] Data persistence
 - [ ] Logging improvements
 - [ ] Containerize
