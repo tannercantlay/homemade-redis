@@ -28,6 +28,10 @@ func main() {
 	}
 }
 
+// handleConnection handles a single connection to the Redis server.
+// It reads commands from the client, processes them, and sends back responses.
+// It uses the NewResp and NewWriter functions to read and write RESP values.
+// It also uses the Handlers map to find the appropriate handler for each command.
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	for {

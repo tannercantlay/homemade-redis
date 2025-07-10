@@ -4,6 +4,7 @@ import (
 	"sync"
 )
 
+// Handlers maps Redis commands to their respective handler functions.
 var Handlers = map[string]func([]Value) Value{
 	"PING":    ping,
 	"SET":     set,
@@ -13,6 +14,7 @@ var Handlers = map[string]func([]Value) Value{
 	"HGETALL": hgetall,
 }
 
+// ping is a handler for the PING command.
 func ping(args []Value) Value {
 	if len(args) == 0 {
 		return Value{typ: "string", str: "PONG"}
@@ -21,9 +23,11 @@ func ping(args []Value) Value {
 	return Value{typ: "string", str: args[0].bulk}
 }
 
+// sets and gets a key-value pair in a simple in-memory store
 var SETs = map[string]string{}
 var SETsMu = sync.RWMutex{}
 
+// set is a handler for the SET command.
 func set(args []Value) Value {
 	if len(args) != 2 {
 		return Value{typ: "error", str: "ERR wrong number of arguments for 'set' command"}
@@ -39,6 +43,7 @@ func set(args []Value) Value {
 	return Value{typ: "string", str: "OK"}
 }
 
+// get is a handler for the GET command.
 func get(args []Value) Value {
 	if len(args) != 1 {
 		return Value{typ: "error", str: "ERR wrong number of arguments for 'get' command"}
@@ -60,6 +65,7 @@ func get(args []Value) Value {
 var HSETs = map[string]map[string]string{}
 var HSETsMu = sync.RWMutex{}
 
+// hset is a handler for the HSET command, which sets a field in a hash.
 func hset(args []Value) Value {
 	if len(args) != 3 {
 		return Value{typ: "error", str: "ERR wrong number of arguments for 'hset' command"}
@@ -79,6 +85,7 @@ func hset(args []Value) Value {
 	return Value{typ: "string", str: "OK"}
 }
 
+// hget is a handler for the HGET command, which retrieves a field from a hash.
 func hget(args []Value) Value {
 	if len(args) != 2 {
 		return Value{typ: "error", str: "ERR wrong number of arguments for 'hget' command"}
@@ -98,6 +105,7 @@ func hget(args []Value) Value {
 	return Value{typ: "bulk", bulk: value}
 }
 
+// hgetall is a handler for the HGETALL command, which retrieves all fields and values from a hash.
 func hgetall(args []Value) Value {
 	if len(args) != 1 {
 		return Value{typ: "error", str: "ERR wrong number of arguments for 'hgetall' command"}
