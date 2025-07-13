@@ -20,6 +20,8 @@ go run .
 - [x] Reading RESP
 - [x] Writing RESP
 - [x] Reading RESP commands
-- [ ] Data persistence
+- [x] Data persistence
+- [ ] Del function
+- [ ] DBSize function https://redis.io/docs/latest/commands/dbsize/
 - [ ] Logging improvements
 - [ ] Containerize

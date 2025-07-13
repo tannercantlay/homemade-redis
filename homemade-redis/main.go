@@ -15,6 +15,27 @@ func main() {
 		fmt.Println("Error starting server:", err)
 		return
 	}
+
+	aof, err := NewAof("database.aof")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer aof.Close()
+
+	aof.Read(func(value Value) {
+		command := strings.ToUpper(value.array[0].bulk)
+		args := value.array[1:]
+
+		handler, ok := Handlers[command]
+		if !ok {
+			fmt.Println("Invalid command: ", command)
+			return
+		}
+
+		handler(args)
+	})
+
 	// Listen for connections
 	defer l.Close()
 
@@ -24,15 +45,14 @@ func main() {
 			fmt.Println("Error accepting connection:", err)
 			continue
 		}
-		go handleConnection(conn)
+		go handleConnection(conn, aof)
 	}
 }
 
 // handleConnection handles a single connection to the Redis server.
 // It reads commands from the client, processes them, and sends back responses.
-// It uses the NewResp and NewWriter functions to read and write RESP values.
-// It also uses the Handlers map to find the appropriate handler for each command.
-func handleConnection(conn net.Conn) {
+
+func handleConnection(conn net.Conn, aof *Aof) {
 	defer conn.Close()
 	for {
 		resp := NewResp(conn)
@@ -62,6 +82,10 @@ func handleConnection(conn net.Conn) {
 			fmt.Println("Invalid command: ", command)
 			writer.Write(Value{typ: "string", str: ""})
 			continue
+		}
+
+		if command == "SET" || command == "HSET" {
+			aof.Write(value)
 		}
 
 		result := handler(args)
