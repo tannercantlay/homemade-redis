@@ -15,6 +15,8 @@ type Aof struct {
 	mu   sync.Mutex
 }
 
+// NewAof creates a new AOF (Append Only File) instance.
+// It opens the file at the specified path, creating it if it does not exist.
 func NewAof(path string) (*Aof, error) {
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
@@ -42,6 +44,7 @@ func NewAof(path string) (*Aof, error) {
 	return aof, nil
 }
 
+// Close closes the AOF file, ensuring all data is flushed to disk.
 func (aof *Aof) Close() error {
 	aof.mu.Lock()
 	defer aof.mu.Unlock()
@@ -61,6 +64,7 @@ func (aof *Aof) Write(value Value) error {
 	return nil
 }
 
+// Read reads all values from the AOF file and applies the provided function to each value.
 func (aof *Aof) Read(fn func(value Value)) error {
 	aof.mu.Lock()
 	defer aof.mu.Unlock()

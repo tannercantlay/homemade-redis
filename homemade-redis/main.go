@@ -16,6 +16,10 @@ func main() {
 		return
 	}
 
+	// Create a new AOF instance
+	// This will create the AOF file if it does not exist
+	// and start a goroutine to sync it to disk every second.
+	// The AOF file will be named "database.aof".
 	aof, err := NewAof("database.aof")
 	if err != nil {
 		fmt.Println(err)
@@ -23,6 +27,7 @@ func main() {
 	}
 	defer aof.Close()
 
+	// Read existing AOF data and register handlers
 	aof.Read(func(value Value) {
 		command := strings.ToUpper(value.array[0].bulk)
 		args := value.array[1:]
@@ -75,6 +80,7 @@ func handleConnection(conn net.Conn, aof *Aof) {
 		command := strings.ToUpper(value.array[0].bulk)
 		args := value.array[1:]
 
+		// Create a new writer to send responses back to the client
 		writer := NewWriter(conn)
 
 		handler, ok := Handlers[command]
@@ -83,11 +89,13 @@ func handleConnection(conn net.Conn, aof *Aof) {
 			writer.Write(Value{typ: "string", str: ""})
 			continue
 		}
-
+		// If the command is SET or HSET, write it to the AOF file
+		// This ensures that the command is persisted to disk.
 		if command == "SET" || command == "HSET" {
 			aof.Write(value)
 		}
-
+		// Call the handler for the command
+		// and write the result back to the client.
 		result := handler(args)
 		writer.Write(result)
 	}
