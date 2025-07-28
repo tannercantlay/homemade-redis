@@ -10,6 +10,12 @@ Build and run with all base Go modules:
 go run .
 ```
 
+Build and run docker container:
+'''sh
+docker build -t homemade-redis .
+docker run -p 6379:6379 homemade-redis
+'''
+
 ## Project Structure
 
 - `main.go` — Entry point, TCP server logic
@@ -24,4 +30,5 @@ go run .
 - [ ] Del function
 - [ ] DBSize function https://redis.io/docs/latest/commands/dbsize/
 - [ ] Logging improvements
-- [ ] Containerize
+- [x] Containerize
+
