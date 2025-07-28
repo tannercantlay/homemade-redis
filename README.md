@@ -4,17 +4,18 @@ Building my own custom Redis server in Go.
 
 ## Running
 
-Build and run with all base Go modules:
+**Build and run with Go (from the project root):**
 
 ```sh
-go run .
+go run homemade-redis/*.go
 ```
 
-Build and run docker container:
-'''sh
+**Build and run with Docker:**
+
+```sh
 docker build -t homemade-redis .
 docker run -p 6379:6379 homemade-redis
-'''
+```
 
 ## Project Structure
 
